@@ -5,10 +5,12 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { ItemsModule } from './modules/items/items.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
       envFilePath: ['.env', '.env.local'],
     }),
     TypeOrmModule.forRoot({
@@ -19,10 +21,13 @@ import { ItemsModule } from './modules/items/items.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: false,
+      charset: 'utf8mb4',
+      timezone: '+08:00',
     }),
     UsersModule,
     ItemsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
