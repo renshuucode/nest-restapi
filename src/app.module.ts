@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
+// import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
-import { ItemsModule } from './modules/items/items.module';
+// import { ItemsModule } from './modules/items/items.module';
+// import { AuthModule } from './modules/auth/auth.module';
 import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
@@ -25,9 +26,10 @@ import { AuthModule } from './modules/auth/auth.module';
       charset: 'utf8mb4',
       timezone: '+08:00',
     }),
-    UsersModule,
-    ItemsModule,
     AuthModule,
+    // UsersModule,
+    // ItemsModule,
+    // AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
