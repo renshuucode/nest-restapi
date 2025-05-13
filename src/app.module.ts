@@ -4,7 +4,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { ConfigModule } from '@nestjs/config';
-import { ItemsModule } from './modules/items/items.module';
 import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
@@ -26,7 +25,6 @@ import { AuthModule } from './modules/auth/auth.module';
       timezone: '+08:00',
     }),
     UsersModule,
-    ItemsModule,
     AuthModule,
   ],
   controllers: [AppController],
