@@ -1,64 +1,70 @@
-import { Injectable, ConflictException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
-import { User } from './entities/user.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
-  ) {}
+  private users: User[] = [
+    {
+      id: 1,
+      name: 'John Doe 1',
+      password: 'john_doe_password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      id: 2,
+      name: 'Jane Doe 2',
+      password: 'jane_doe_password',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ];
+  private nextId = 3;
 
-  // 用户注册逻辑
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.findOneByEmail(createUserDto.email);
-    if (existingUser) {
-      throw new ConflictException('该邮箱已被注册');
+  create(createUserDto: CreateUserDto): User {
+    const newUser: User = {
+      id: this.nextId++,
+      ...createUserDto,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.push(newUser);
+    return newUser;
+  }
+
+  findAll(): User[] {
+    return this.users;
+  }
+
+  findOne(id: number): User {
+    const user = this.users.find((user) => user.id === id);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-
-    return this.usersRepository.save({
-      name: createUserDto.name,
-      email: createUserDto.email,
-      passwordHash: hashedPassword,
-      role: 'user',
-    });
+    return user;
   }
 
-  // 查询所有用户
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  update(id: number, updateUserDto: UpdateUserDto): User {
+    const userIndex = this.users.findIndex((user) => user.id === id);
+    if (userIndex === -1) {
+      throw new NotFoundException('User not found');
+    }
+    const updatedUser: User = {
+      ...this.users[userIndex],
+      ...updateUserDto,
+      updatedAt: new Date(),
+    };
+    this.users[userIndex] = updatedUser;
+    return updatedUser;
   }
 
-  // 通过 email 查询用户（排除敏感字段）
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    return this.usersRepository.findOne({
-      where: { email },
-      select: ['id', 'email', 'passwordHash', 'role'],
-    });
-  }
-
-  // 通过 id 查询用户（排除敏感字段）
-  async findOneById(id: number): Promise<User | undefined> {
-    return this.usersRepository.findOne({
-      where: { id },
-      select: ['id', 'email', 'passwordHash', 'role'],
-    });
-  }
-
-  // 用户信息更新逻辑
-  async updateUser(id: number, updateData: Partial<User>): Promise<User> {
-    await this.usersRepository.update(id, updateData);
-    return this.usersRepository.findOneBy({ id });
-  }
-
-  // 删除用户
-  async removeUserById(id: number): Promise<void> {
-    await this.usersRepository.delete(id);
+  remove(id: number): void {
+    const userIndex = this.users.findIndex((user) => user.id === id);
+    if (userIndex === -1) {
+      throw new NotFoundException('User not found');
+    }
+    this.users.splice(userIndex, 1);
   }
 }

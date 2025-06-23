@@ -1,23 +1,13 @@
-import {
-  IsEmail,
-  IsString,
-  MinLength,
-  Matches,
-  MaxLength,
-} from 'class-validator';
+import { MinLength, IsString, MaxLength } from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
+  @MinLength(1)
+  @MaxLength(255)
   name: string;
-
-  @IsEmail()
-  email: string;
 
   @IsString()
   @MinLength(8)
-  @MaxLength(20)
-  @Matches(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z])/, {
-    message: '密码必须包含大小写字母和数字',
-  })
+  @MaxLength(255)
   password: string;
 }
