@@ -18,12 +18,19 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("./entities/user.entity");
 const bcrypt = require("bcrypt");
+const business_exception_1 = require("../../common/exceptions/business.exception");
 let UsersService = class UsersService {
     usersRepository;
     constructor(usersRepository) {
         this.usersRepository = usersRepository;
     }
     async create(createUserDto) {
+        const existingUser = await this.usersRepository.findOne({
+            where: { name: createUserDto.name },
+        });
+        if (existingUser) {
+            throw new business_exception_1.BusinessException('用户名已存在');
+        }
         const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
         const user = this.usersRepository.create({
             ...createUserDto,
@@ -37,7 +44,7 @@ let UsersService = class UsersService {
     async findOne(id) {
         const user = await this.usersRepository.findOne({ where: { id } });
         if (!user) {
-            throw new common_1.NotFoundException('User not found');
+            throw new business_exception_1.UserNotFoundException(id);
         }
         return user;
     }
