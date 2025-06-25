@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -44,11 +48,27 @@ export class UsersService {
     return user;
   }
 
+  async findByName(name: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { name } });
+    if (!user) {
+      throw new NotFoundException(`用户 ${name} 不存在`);
+    }
+    return user;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.findOne(id);
+    if (updateUserDto.name && updateUserDto.name !== user.name) {
+      const existingUser = await this.usersRepository.findOne({
+        where: { name: updateUserDto.name },
+      });
+      if (existingUser) {
+        throw new ConflictException('用户名已存在');
+      }
+    }
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
-
     await this.usersRepository.update(id, updateUserDto);
     return await this.findOne(id);
   }

@@ -48,7 +48,23 @@ let UsersService = class UsersService {
         }
         return user;
     }
+    async findByName(name) {
+        const user = await this.usersRepository.findOne({ where: { name } });
+        if (!user) {
+            throw new common_1.NotFoundException(`用户 ${name} 不存在`);
+        }
+        return user;
+    }
     async update(id, updateUserDto) {
+        const user = await this.findOne(id);
+        if (updateUserDto.name && updateUserDto.name !== user.name) {
+            const existingUser = await this.usersRepository.findOne({
+                where: { name: updateUserDto.name },
+            });
+            if (existingUser) {
+                throw new common_1.ConflictException('用户名已存在');
+            }
+        }
         if (updateUserDto.password) {
             updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
         }
